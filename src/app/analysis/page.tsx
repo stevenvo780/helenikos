@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAudio } from '@/hooks/useAudio'
+import { AnalysisManager } from '@/lib/analysis-manager'
 import { 
   Search, 
   FileText, 
@@ -15,7 +17,9 @@ import {
   Volume2,
   Info,
   Brain,
-  Target
+  Target,
+  Upload,
+  Share2
 } from 'lucide-react'
 
 interface WordAnalysis {

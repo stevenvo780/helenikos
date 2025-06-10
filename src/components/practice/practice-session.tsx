@@ -33,6 +33,29 @@ interface Exercise {
   difficulty: 'easy' | 'medium' | 'hard'
 }
 
+interface ExerciseSet {
+  id: string
+  title: string
+  description: string
+  category: string
+  estimatedTime: number
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
+  exercises: Exercise[]
+}
+
+interface ExerciseResults {
+  totalQuestions: number
+  correctAnswers: number
+  timeSpent: number
+  score: number
+}
+
+interface PracticeSessionProps {
+  exerciseSet: ExerciseSet
+  onComplete: (results: ExerciseResults) => Promise<void>
+  onBack: () => void
+}
+
 interface PracticeSessionStats {
   questionsAnswered: number
   correctAnswers: number
@@ -41,7 +64,7 @@ interface PracticeSessionStats {
   score: number
 }
 
-export default function PracticeSession() {
+export default function PracticeSession({ exerciseSet, onComplete, onBack }: PracticeSessionProps) {
   const [currentExercise, setCurrentExercise] = useState(0)
   const [userAnswer, setUserAnswer] = useState<string>('')
   const [showResult, setShowResult] = useState(false)

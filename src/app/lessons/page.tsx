@@ -242,36 +242,33 @@ export default function LessonsPage() {
                           {topic}
                         </span>
                       ))}
-                    </div>
-
-                    <div className="pt-2">
+                    </div>                    <div className="pt-2">
                       {lesson.locked ? (
                         <Button disabled className="w-full">
                           <Lock className="w-4 h-4 mr-2" />
                           Bloqueado
                         </Button>
                       ) : lesson.completed ? (
-                        <Link href={`/lessons/${lesson.id}`} className="block">
+                        <Link href={`/lessons/${lesson.id}`} className="w-full">
                           <Button variant="outline" className="w-full">
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Revisar
                           </Button>
                         </Link>
                       ) : lesson.progress > 0 ? (
-                        <Link href={`/lessons/${lesson.id}`} className="block">
+                        <Link href={`/lessons/${lesson.id}`} className="w-full">
                           <Button className="w-full">
                             <Play className="w-4 h-4 mr-2" />
                             Continuar
                           </Button>
                         </Link>
                       ) : (
-                        <Link href={`/lessons/${lesson.id}`} className="block">
+                        <Link href={`/lessons/${lesson.id}`} className="w-full">
                           <Button className="w-full">
                             <Play className="w-4 h-4 mr-2" />
-                            Comenzar
+                            Empezar
                           </Button>
-                        </Link>
-                      )}
+                        </Link>                      )}
                     </div>
                   </div>
                 </div>

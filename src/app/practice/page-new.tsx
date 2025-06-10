@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/dashboard-layout'
@@ -11,21 +11,13 @@ import {
   Clock,
   Brain,
   Play,
+  Trophy,
+  Star,
   Target,
+  BookOpen,
   Award,
   Zap
 } from 'lucide-react'
-
-interface Exercise {
-  id: string
-  type: 'multiple-choice' | 'translation' | 'fill-blank' | 'matching'
-  question: string
-  options?: string[]
-  correctAnswer: string
-  hint?: string
-  explanation?: string
-  difficulty: 'easy' | 'medium' | 'hard'
-}
 
 interface ExerciseSet {
   id: string
@@ -34,14 +26,7 @@ interface ExerciseSet {
   category: string
   estimatedTime: number
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
-  exercises: Exercise[]
-}
-
-interface ExerciseResults {
-  totalQuestions: number
-  correctAnswers: number
-  timeSpent: number
-  score: number
+  exercises: any[]
 }
 
 export default function PracticePage() {
@@ -51,7 +36,17 @@ export default function PracticePage() {
   const [exerciseSets, setExerciseSets] = useState<ExerciseSet[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchExercises = useCallback(async () => {
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchExercises()
+  }, [session, status, router])
+
+  const fetchExercises = async () => {
     try {
       const response = await fetch('/api/exercises')
       const data = await response.json()
@@ -68,17 +63,7 @@ export default function PracticePage() {
     } finally {
       setLoading(false)
     }
-  }, [])
-
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    fetchExercises()
-  }, [session, status, router, fetchExercises])
+  }
 
   const getStaticExercises = (): ExerciseSet[] => [
     {
@@ -150,7 +135,7 @@ export default function PracticePage() {
     setSelectedSet(null)
   }
 
-  const handleCompleteSet = async (results: ExerciseResults) => {
+  const handleCompleteSet = async (results: any) => {
     // Aquí podrías enviar los resultados a la API
     console.log('Resultados del ejercicio:', results)
     

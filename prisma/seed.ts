@@ -46,7 +46,8 @@ async function main() {
       level: 'BEGINNER',
       order: 1,
       estimatedDuration: 30,
-      prerequisites: [],
+      prerequisites: JSON.stringify([]),
+      isPublished: true
     },
   })
 
@@ -69,11 +70,71 @@ async function main() {
       level: 'BEGINNER',
       order: 2,
       estimatedDuration: 45,
-      prerequisites: ['alphabet-1'],
+      prerequisites: JSON.stringify(['alphabet-1']),
+      isPublished: true
     },
   })
 
-  console.log('✅ Lecciones creadas:', alphabetLesson.title, nounsLesson.title)
+  const vocabularyLesson = await prisma.lesson.upsert({
+    where: { id: 'vocabulary-1' },
+    update: {},
+    create: {
+      id: 'vocabulary-1',
+      title: 'Vocabulario Básico I',
+      description: 'Las primeras 50 palabras esenciales del griego antiguo',
+      content: JSON.stringify({
+        introduction: 'Estas palabras forman la base del vocabulario griego.',
+        sections: [
+          {
+            title: 'Sustantivos básicos',
+            content: 'λόγος (palabra), σοφία (sabiduría), θεός (dios)'
+          }
+        ]
+      }),
+      level: 'BEGINNER',
+      order: 3,
+      estimatedDuration: 60,
+      prerequisites: JSON.stringify(['alphabet-1']),
+      isPublished: true
+    },
+  })
+
+  console.log('✅ Lecciones creadas:', alphabetLesson.title, nounsLesson.title, vocabularyLesson.title)
+
+  // Crear quizzes para las lecciones
+  const alphabetQuiz = await prisma.quiz.upsert({
+    where: { id: 'alphabet-quiz-1' },
+    update: {},
+    create: {
+      id: 'alphabet-quiz-1',
+      lessonId: 'alphabet-1',
+      title: 'Quiz del Alfabeto Griego',
+      questions: JSON.stringify([
+        {
+          id: 'alpha-1',
+          type: 'multiple-choice',
+          question: '¿Cómo se pronuncia la letra Α?',
+          options: ['[a]', '[e]', '[i]', '[o]'],
+          correctAnswer: '[a]',
+          hint: 'Es igual que la "a" en español',
+          explanation: 'La alfa (Α) se pronuncia como "a" en español.',
+          difficulty: 'easy'
+        },
+        {
+          id: 'beta-1',
+          type: 'multiple-choice',
+          question: '¿Cuál es la forma minúscula de Β?',
+          options: ['α', 'β', 'γ', 'δ'],
+          correctAnswer: 'β',
+          hint: 'Se parece a una "B" pero con curvas',
+          explanation: 'La beta minúscula es β.',
+          difficulty: 'easy'
+        }
+      ])
+    }
+  })
+
+  console.log('✅ Quiz creado:', alphabetQuiz.title)
 
   // Crear vocabulario básico
   const vocabularyEntries = [
@@ -88,7 +149,7 @@ async function main() {
         { greek: 'κατὰ λόγον', translation: 'según razón' }
       ]),
       frequency: 95,
-      level: 'BEGINNER',
+      level: 'BEGINNER' as const,
       morphology: JSON.stringify({
         declension: 'Segunda declinación',
         irregularities: []
@@ -105,7 +166,7 @@ async function main() {
         { greek: 'σοφίᾳ διαφέρειν', translation: 'destacar en sabiduría' }
       ]),
       frequency: 72,
-      level: 'BEGINNER',
+      level: 'BEGINNER' as const,
       morphology: JSON.stringify({
         declension: 'Primera declinación',
         irregularities: []
@@ -122,7 +183,7 @@ async function main() {
         { greek: 'δικαιοσύνης ἕνεκα', translation: 'por causa de la justicia' }
       ]),
       frequency: 58,
-      level: 'INTERMEDIATE',
+      level: 'INTERMEDIATE' as const,
       morphology: JSON.stringify({
         declension: 'Primera declinación',
         irregularities: []
@@ -139,7 +200,7 @@ async function main() {
         { greek: 'πάντες ἄνθρωποι', translation: 'todos los hombres' }
       ]),
       frequency: 89,
-      level: 'BEGINNER',
+      level: 'BEGINNER' as const,
       morphology: JSON.stringify({
         declension: 'Segunda declinación',
         irregularities: []
@@ -156,7 +217,7 @@ async function main() {
         { greek: 'ἡ φιλοσοφία Πλάτωνος', translation: 'la filosofía de Platón' }
       ]),
       frequency: 65,
-      level: 'INTERMEDIATE',
+      level: 'INTERMEDIATE' as const,
       morphology: JSON.stringify({
         declension: 'Primera declinación',
         irregularities: []
@@ -177,43 +238,40 @@ async function main() {
   // Crear formas morfológicas básicas
   const morphologicalForms = [
     {
-      baseForm: 'λόγος',
-      inflectedForm: 'λόγου',
-      morphology: JSON.stringify({
-        case: 'genitivo',
-        number: 'singular',
-        gender: 'masculino'
-      }),
+      word: 'λόγου',
+      lemma: 'λόγος',
       partOfSpeech: 'sustantivo',
+      case: 'genitivo',
+      number: 'singular',
+      gender: 'masculino',
+      frequency: 85
     },
     {
-      baseForm: 'λόγος',
-      inflectedForm: 'λόγῳ',
-      morphology: JSON.stringify({
-        case: 'dativo',
-        number: 'singular',
-        gender: 'masculino'
-      }),
+      word: 'λόγῳ',
+      lemma: 'λόγος',
       partOfSpeech: 'sustantivo',
+      case: 'dativo',
+      number: 'singular',
+      gender: 'masculino',
+      frequency: 75
     },
     {
-      baseForm: 'λόγος',
-      inflectedForm: 'λόγον',
-      morphology: JSON.stringify({
-        case: 'acusativo',
-        number: 'singular',
-        gender: 'masculino'
-      }),
+      word: 'λόγον',
+      lemma: 'λόγος',
       partOfSpeech: 'sustantivo',
+      case: 'acusativo',
+      number: 'singular',
+      gender: 'masculino',
+      frequency: 90
     }
   ]
 
   for (const form of morphologicalForms) {
     await prisma.morphologicalForm.upsert({
       where: {
-        inflectedForm_baseForm: {
-          inflectedForm: form.inflectedForm,
-          baseForm: form.baseForm
+        word_lemma: {
+          word: form.word,
+          lemma: form.lemma
         }
       },
       update: {},

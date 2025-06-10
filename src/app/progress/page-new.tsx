@@ -31,23 +31,6 @@ interface ProgressData {
   }
 }
 
-interface LessonProgress {
-  id: string
-  lessonId: string
-  completed: boolean
-  completedAt?: string
-  score?: number
-  timeSpent?: number
-}
-
-interface SkillData {
-  level: number
-  progress: number
-  total?: number
-  completed?: number
-  [key: string]: unknown
-}
-
 export default function ProgressPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -55,7 +38,7 @@ export default function ProgressPage() {
   const [progressData, setProgressData] = useState<ProgressData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const generateDailyActivity = (lessonsProgress: LessonProgress[]) => {
+  const generateDailyActivity = (lessonsProgress: any[]) => {
     const last7Days = []
     const today = new Date()
     
@@ -89,7 +72,7 @@ export default function ProgressPage() {
     ]
   }
 
-  const generateAchievements = (overallStats: ProgressData['overallStats']) => {
+  const generateAchievements = (overallStats: any) => {
     const achievements = []
     
     if (overallStats.completedLessons > 0) {
@@ -192,11 +175,10 @@ export default function ProgressPage() {
           dailyActivity: generateDailyActivity(data.lessonsProgress || []),
           weeklyGoals: generateWeeklyGoals(),
           achievements: generateAchievements(data.overallStats),
-          skillProgress: Object.entries(data.skillProgress || {}).map(([skill, skillData]: [string, SkillData]) => ({
+          skillProgress: Object.entries(data.skillProgress || {}).map(([skill, skillData]: [string, any]) => ({
             skill: skill.charAt(0).toUpperCase() + skill.slice(1),
             level: skillData.level || 0,
-            progress: (skillData.total && skillData.total > 0) ? 
-              Math.round(((skillData.completed || 0) / skillData.total) * 100) : 0
+            progress: skillData.total > 0 ? Math.round((skillData.completed / skillData.total) * 100) : 0
           })),
           overallStats: data.overallStats
         }
