@@ -1,23 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Search, 
   Volume2, 
   BookOpen, 
-  Star,
-  Filter,
   ArrowRight,
-  Info,
   Heart,
-  Copy,
-  ExternalLink
+  Copy
 } from 'lucide-react'
 
 interface DictionaryEntry {
@@ -49,7 +44,6 @@ export default function DictionaryPage() {
   const [searchMode, setSearchMode] = useState<'greek' | 'spanish' | 'lemma'>('greek')
   const [levelFilter, setLevelFilter] = useState<string>('all')
 
-  // Datos de ejemplo del diccionario
   const dictionaryData: DictionaryEntry[] = [
     {
       id: '1',
@@ -131,30 +125,13 @@ export default function DictionaryPage() {
       },
       relatedWords: ['ἀνθρώπινος', 'ἀνθρωπότης', 'φιλανθρωπία'],
       audioUrl: 'anthropos.mp3'
-    }
-  ]
-
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session) {
-      router.push('/auth/signin')
-    }
-  }, [session, status, router])
-
-  useEffect(() => {
-    if (searchTerm.length > 0) {
-      handleSearch()
-    } else {
-      setSearchResults([])
-    }
-  }, [searchTerm, searchMode, levelFilter])
-
-  const handleSearch = () => {
+    }  ]
+  const handleSearch = useCallback(() => {
     setIsSearching(true)
     
     // Simular búsqueda - en producción esto sería una llamada a API
     setTimeout(() => {
-      let results = dictionaryData.filter(entry => {
+      const results = dictionaryData.filter(entry => {
         const matchesLevel = levelFilter === 'all' || entry.level.toLowerCase() === levelFilter
         
         switch (searchMode) {
@@ -172,7 +149,22 @@ export default function DictionaryPage() {
       setSearchResults(results)
       setIsSearching(false)
     }, 500)
-  }
+  }, [searchTerm, searchMode, levelFilter, dictionaryData])
+
+  useEffect(() => {
+    if (status === 'loading') return
+    if (!session) {
+      router.push('/auth/signin')
+    }
+  }, [session, status, router])
+
+  useEffect(() => {
+    if (searchTerm.length > 0) {
+      handleSearch()
+    } else {
+      setSearchResults([])
+    }
+  }, [searchTerm, searchMode, levelFilter, handleSearch])
 
   const playAudio = (audioUrl: string) => {
     console.log(`Playing audio: ${audioUrl}`)
@@ -228,7 +220,7 @@ export default function DictionaryPage() {
               <div className="flex gap-2">
                 <select
                   value={searchMode}
-                  onChange={(e) => setSearchMode(e.target.value as any)}
+                  onChange={(e) => setSearchMode(e.target.value as 'greek' | 'spanish' | 'lemma')}
                   className="px-3 py-2 border border-border rounded-md text-sm"
                 >
                   <option value="greek">Griego</option>

@@ -25,6 +25,7 @@ model User {
   quizResults   QuizResult[]
   accounts      Account[]
   sessions      Session[]
+  textAnalyses  TextAnalysis[]
   
   @@map("users")
 }
@@ -163,23 +164,55 @@ model TextAnalysis {
   
   // Relaciones
   text        GreekText @relation(fields: [textId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("text_analyses")
 }
 
 model Vocabulary {
-  id          String   @id @default(cuid())
-  greekWord   String   @unique
-  lemma       String
-  definition  String
-  etymology   String?
-  examples    String?  // JSON array of examples
-  frequency   Int      @default(0)
-  level       Level
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  greekWord     String   @unique
+  lemma         String
+  partOfSpeech  String
+  definition    String
+  etymology     String?
+  frequency     Int      @default(0)
+  level         Level    @default(BEGINNER)
+  examples      String   // JSON array de ejemplos
+  morphology    String   // JSON con información morfológica
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   @@map("vocabulary")
+}
+
+model MorphologicalForm {
+  id           String @id @default(cuid())
+  word         String
+  lemma        String
+  partOfSpeech String
+  case         String?
+  number       String?
+  gender       String?
+  tense        String?
+  voice        String?
+  mood         String?
+  person       String?
+  frequency    Int    @default(0)
+  
+  @@unique([word, lemma])
+  @@map("morphological_forms")
+}
+
+model SyntacticPattern {
+  id          String @id @default(cuid())
+  pattern     String @unique
+  description String
+  frequency   Int    @default(0)
+  examples    String // JSON array de ejemplos
+  difficulty  Level  @default(BEGINNER)
+  
+  @@map("syntactic_patterns")
 }
 
 // Enums
