@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Volume2, 
   ChevronLeft, 

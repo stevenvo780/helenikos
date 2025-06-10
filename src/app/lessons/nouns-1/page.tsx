@@ -7,16 +7,13 @@ import DashboardLayout from '@/components/layout/dashboard-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   ArrowLeft,
   ArrowRight,
   BookOpen,
   CheckCircle,
-  Star,
-  Table,
-  Eye
+  Star
 } from 'lucide-react'
 
 interface DeclensionExample {

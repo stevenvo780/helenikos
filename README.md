@@ -1,14 +1,20 @@
 # 🏛️ Helenikos (Ἑλληνικός) - Plataforma de Aprendizaje del Griego Antiguo
 
-Una aplicación web universitaria completa para el aprendizaje y análisis del griego antiguo, construida con Next.js 15, TypeScript y Tailwind CSS.
+Una aplicación web completa y moderna para el aprendizaje interactivo del griego antiguo, construida con Next.js 15, TypeScript, Prisma y Tailwind CSS.
 
-## ✨ Características Principales
+## ✨ Características Implementadas
 
-### 📚 Módulo Educativo
-- **Lecciones Interactivas**: Alfabeto, vocabulario, gramática y sintaxis
-- **Sistema de Progreso**: Seguimiento detallado del avance del estudiante
-- **Ejercicios Variados**: Traducción, análisis morfológico, práctica de escritura
-- **Evaluaciones**: Quizzes automáticos con retroalimentación inmediata
+### 📚 Sistema de Lecciones Interactivas
+- **3 Lecciones Completas**: Alfabeto griego, vocabulario básico y primera declinación
+- **Contenido multimedia** con pronunciación de texto griego usando el hook `useAudio`
+- **Seguimiento de progreso** detallado por lección con base de datos
+- **Evaluaciones integradas** con retroalimentación inmediata
+
+### 📝 Ejercicios y Práctica  
+- **Componente PracticeSession** con múltiples tipos de ejercicios
+- **Sistema de puntuación** y estadísticas de rendimiento
+- **Retroalimentación educativa** con explicaciones detalladas
+- **Integración con APIs** para guardar progreso
 
 ### 🔍 Módulo de Análisis
 - **Analizador Morfológico**: Análisis automático de textos griegos
