@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Modelos de Usuario y Autenticación
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          UserRole  @default(STUDENT)
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relaciones
+  progress      Progress[]
+  quizResults   QuizResult[]
+  accounts      Account[]
+  sessions      Session[]
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// Modelos del Contenido Educativo
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String   // JSON content
+  level       Level
+  order       Int
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relaciones
+  progress    Progress[]
+  quizzes     Quiz[]
+  
+  @@map("lessons")
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  lessonId    String
+  title       String
+  questions   String   // JSON array of questions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relaciones
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  results     QuizResult[]
+  
+  @@map("quizzes")
+}
+
+model QuizResult {
+  id        String   @id @default(cuid())
+  userId    String
+  quizId    String
+  score     Float
+  answers   String   // JSON array of answers
+  completedAt DateTime @default(now())
+  
+  // Relaciones
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz      Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  @@map("quiz_results")
+}
+
+model Progress {
+  id           String   @id @default(cuid())
+  userId       String
+  lessonId     String
+  completed    Boolean  @default(false)
+  completedAt  DateTime?
+  timeSpent    Int      @default(0) // in minutes
+  
+  // Relaciones
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson       Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@map("progress")
+}
+
+// Modelos para Análisis de Texto
+model GreekText {
+  id          String   @id @default(cuid())
+  title       String
+  author      String?
+  content     String   // Texto griego original
+  translation String?  // Traducción al español
+  period      Period?
+  genre       Genre?
+  difficulty  Level
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relaciones
+  analyses    TextAnalysis[]
+  
+  @@map("greek_texts")
+}
+
+model TextAnalysis {
+  id          String   @id @default(cuid())
+  textId      String
+  userId      String
+  analysis    String   // JSON con análisis morfológico
+  notes       String?
+  createdAt   DateTime @default(now())
+  
+  // Relaciones
+  text        GreekText @relation(fields: [textId], references: [id], onDelete: Cascade)
+  
+  @@map("text_analyses")
+}
+
+model Vocabulary {
+  id          String   @id @default(cuid())
+  greekWord   String   @unique
+  lemma       String
+  definition  String
+  etymology   String?
+  examples    String?  // JSON array of examples
+  frequency   Int      @default(0)
+  level       Level
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("vocabulary")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Period {
+  ARCHAIC
+  CLASSICAL
+  HELLENISTIC
+  BYZANTINE
+}
+
+enum Genre {
+  EPIC
+  DRAMA
+  PHILOSOPHY
+  HISTORY
+  POETRY
+  PROSE
+}
