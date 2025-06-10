@@ -8,14 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Calendar, 
   TrendingUp, 
-  Award, 
   Clock,
   BookOpen,
-  Target,
   Zap,
-  BarChart3,
   Download,
   Share2
 } from 'lucide-react'
@@ -39,7 +35,7 @@ export default function ProgressPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month')
-  const [progressData, setProgressData] = useState<ProgressData>({
+  const [progressData] = useState<ProgressData>({
     dailyActivity: [
       { date: '2025-06-01', minutes: 45, lessons: 2 },
       { date: '2025-06-02', minutes: 30, lessons: 1 },

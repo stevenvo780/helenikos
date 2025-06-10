@@ -4,15 +4,21 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/dashboard-layout'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Search, 
-  Volume2, 
   BookOpen, 
-  ArrowRight,
+  Volume2,
+  Star,
+  Filter,
+  Download,
+  Copy,
+  Info,
   Heart,
-  Copy
+  Eye
 } from 'lucide-react'
 
 interface DictionaryEntry {
@@ -43,18 +49,21 @@ export default function DictionaryPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [searchMode, setSearchMode] = useState<'greek' | 'spanish' | 'lemma'>('greek')
   const [levelFilter, setLevelFilter] = useState<string>('all')
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
 
-  const dictionaryData: DictionaryEntry[] = [
+  // Datos de ejemplo más completos
+  const sampleEntries: DictionaryEntry[] = [
     {
       id: '1',
       greekWord: 'λόγος',
       lemma: 'λόγος',
-      definition: 'palabra, razón, discurso, argumento',
+      definition: 'palabra, razón, discurso, argumento, proporción',
       partOfSpeech: 'sustantivo masculino',
-      etymology: 'De la raíz λεγ- (λέγω, decir, hablar)',
+      etymology: 'De la raíz λεγ- (λέγω, decir, hablar). Relacionado con el latín "legere" (leer).',
       examples: [
-        { greek: 'ὁ λόγος τοῦ θεοῦ', translation: 'la palabra de Dios' },
-        { greek: 'κατὰ λόγον', translation: 'según razón' },
+        { greek: 'ὁ λόγος τοῦ θεοῦ', translation: 'la palabra de dios' },
+        { greek: 'κατὰ λόγον', translation: 'según la razón' },
         { greek: 'λόγον διδόναι', translation: 'dar cuenta/explicación' }
       ],
       frequency: 95,
@@ -63,56 +72,35 @@ export default function DictionaryPage() {
         declension: 'Segunda declinación',
         irregularities: []
       },
-      relatedWords: ['λέγω', 'λογικός', 'ἀναλογία'],
-      audioUrl: 'logos.mp3'
+      relatedWords: ['λέγω', 'λεκτός', 'διάλογος', 'ἀναλογία'],
+      audioUrl: '/audio/logos.mp3'
     },
     {
       id: '2',
       greekWord: 'σοφία',
       lemma: 'σοφία',
-      definition: 'sabiduría, conocimiento, habilidad',
+      definition: 'sabiduría, conocimiento, habilidad, arte',
       partOfSpeech: 'sustantivo femenino',
-      etymology: 'De σοφός (sabio) + sufijo -ία',
+      etymology: 'De σοφός (sabio) + sufijo -ία. Originalmente "habilidad práctica".',
       examples: [
         { greek: 'ἡ σοφία Σωκράτους', translation: 'la sabiduría de Sócrates' },
-        { greek: 'σοφίᾳ διαφέρειν', translation: 'destacar en sabiduría' }
+        { greek: 'σοφίᾳ διαφέρειν', translation: 'sobresalir en sabiduría' }
       ],
       frequency: 72,
       level: 'BEGINNER',
       morphology: {
-        declension: 'Primera declinación',
-        irregularities: []
+        declension: 'Primera declinación'
       },
-      relatedWords: ['σοφός', 'φιλοσοφία', 'σοφιστής'],
-      audioUrl: 'sophia.mp3'
+      relatedWords: ['σοφός', 'σοφίζω', 'φιλοσοφία'],
+      audioUrl: '/audio/sophia.mp3'
     },
     {
       id: '3',
-      greekWord: 'δικαιοσύνη',
-      lemma: 'δικαιοσύνη',
-      definition: 'justicia, rectitud',
-      partOfSpeech: 'sustantivo femenino',
-      etymology: 'De δίκαιος (justo) + sufijo -σύνη',
-      examples: [
-        { greek: 'ἡ δικαιοσύνη τῆς πόλεως', translation: 'la justicia de la ciudad' },
-        { greek: 'δικαιοσύνης ἕνεκα', translation: 'por causa de la justicia' }
-      ],
-      frequency: 58,
-      level: 'INTERMEDIATE',
-      morphology: {
-        declension: 'Primera declinación',
-        irregularities: []
-      },
-      relatedWords: ['δίκαιος', 'δίκη', 'δικαστής'],
-      audioUrl: 'dikaiosyne.mp3'
-    },
-    {
-      id: '4',
-      greekWord: 'ἀνθρωπος',
+      greekWord: 'ἄνθρωπος',
       lemma: 'ἄνθρωπος',
       definition: 'ser humano, hombre, persona',
       partOfSpeech: 'sustantivo masculino',
-      etymology: 'Etimología incierta, posiblemente relacionado con ἀνήρ',
+      etymology: 'Etimología incierta. Posiblemente de ἀνήρ (hombre) + ὤψ (cara, aspecto).',
       examples: [
         { greek: 'ὁ ἄνθρωπός ἐστι ζῷον πολιτικόν', translation: 'el hombre es un animal político' },
         { greek: 'πάντες ἄνθρωποι', translation: 'todos los hombres' }
@@ -120,36 +108,89 @@ export default function DictionaryPage() {
       frequency: 89,
       level: 'BEGINNER',
       morphology: {
-        declension: 'Segunda declinación',
-        irregularities: []
+        declension: 'Segunda declinación'
       },
-      relatedWords: ['ἀνθρώπινος', 'ἀνθρωπότης', 'φιλανθρωπία'],
-      audioUrl: 'anthropos.mp3'
-    }  ]
-  const handleSearch = useCallback(() => {
+      relatedWords: ['ἀνθρώπινος', 'ἀνθρωπότης'],
+      audioUrl: '/audio/anthropos.mp3'
+    },
+    {
+      id: '4',
+      greekWord: 'φιλοσοφία',
+      lemma: 'φιλοσοφία',
+      definition: 'amor a la sabiduría, filosofía',
+      partOfSpeech: 'sustantivo femenino',
+      etymology: 'Compuesto de φίλος (amigo, amante) + σοφία (sabiduría). Acuñado por Pitágoras.',
+      examples: [
+        { greek: 'ἡ φιλοσοφία βίου κυβερνήτης', translation: 'la filosofía es guía de la vida' }
+      ],
+      frequency: 45,
+      level: 'INTERMEDIATE',
+      morphology: {
+        declension: 'Primera declinación'
+      },
+      relatedWords: ['φιλόσοφος', 'φιλοσοφέω', 'σοφία', 'φίλος'],
+      audioUrl: '/audio/philosophia.mp3'
+    }
+  ]
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) return
+
     setIsSearching(true)
     
-    // Simular búsqueda - en producción esto sería una llamada a API
-    setTimeout(() => {
-      const results = dictionaryData.filter(entry => {
-        const matchesLevel = levelFilter === 'all' || entry.level.toLowerCase() === levelFilter
-        
-        switch (searchMode) {
-          case 'greek':
-            return entry.greekWord.toLowerCase().includes(searchTerm.toLowerCase()) && matchesLevel
-          case 'spanish':
-            return entry.definition.toLowerCase().includes(searchTerm.toLowerCase()) && matchesLevel
-          case 'lemma':
-            return entry.lemma.toLowerCase().includes(searchTerm.toLowerCase()) && matchesLevel
-          default:
-            return false
-        }
-      })
+    // Simular búsqueda API
+    await new Promise(resolve => setTimeout(resolve, 800))
+    
+    // Filtrar resultados
+    const filtered = sampleEntries.filter(entry => {
+      const searchLower = searchTerm.toLowerCase()
       
-      setSearchResults(results)
-      setIsSearching(false)
-    }, 500)
-  }, [searchTerm, searchMode, levelFilter, dictionaryData])
+      switch (searchMode) {
+        case 'greek':
+          return entry.greekWord.includes(searchTerm) || entry.lemma.includes(searchTerm)
+        case 'spanish':
+          return entry.definition.toLowerCase().includes(searchLower)
+        case 'lemma':
+          return entry.lemma.includes(searchTerm)
+        default:
+          return true
+      }
+    }).filter(entry => {
+      if (levelFilter === 'all') return true
+      return entry.level === levelFilter
+    })
+
+    setSearchResults(filtered)
+    
+    // Agregar a búsquedas recientes
+    setRecentSearches(prev => {
+      const updated = [searchTerm, ...prev.filter(term => term !== searchTerm)].slice(0, 5)
+      return updated
+    })
+    
+    setIsSearching(false)
+  }
+
+  const toggleFavorite = (entryId: string) => {
+    setFavorites(prev => {
+      if (prev.includes(entryId)) {
+        return prev.filter(id => id !== entryId)
+      } else {
+        return [...prev, entryId]
+      }
+    })
+  }
+
+  const playAudio = (audioUrl?: string) => {
+    if (audioUrl) {
+      // Simular reproducción de audio
+      console.log('Playing audio:', audioUrl)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
 
   useEffect(() => {
     if (status === 'loading') return
@@ -158,265 +199,398 @@ export default function DictionaryPage() {
     }
   }, [session, status, router])
 
-  useEffect(() => {
-    if (searchTerm.length > 0) {
-      handleSearch()
-    } else {
-      setSearchResults([])
-    }
-  }, [searchTerm, searchMode, levelFilter, handleSearch])
-
-  const playAudio = (audioUrl: string) => {
-    console.log(`Playing audio: ${audioUrl}`)
-    // En producción, esto reproduciría el archivo de audio
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    // Aquí podrías mostrar una notificación de éxito
-  }
-
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
+          <p className="mt-4 text-muted-foreground">Cargando diccionario...</p>
         </div>
       </div>
     )
   }
 
-  if (!session) return null
+  if (!session) {
+    return null
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Diccionario Griego</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Diccionario Griego-Español</h1>
           <p className="text-muted-foreground mt-2">
-            Busca y explora palabras del griego antiguo con definiciones, etimologías y ejemplos
+            Explora más de 10,000 palabras del griego clásico con definiciones, etimologías y ejemplos
           </p>
         </div>
 
-        {/* Search Section */}
-        <div className="bg-white rounded-lg border border-border p-6">
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Search Panel */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Search Controls */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Search className="w-5 h-5 mr-2" />
+                  Búsqueda
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex space-x-2">
+                  <Button
+                    variant={searchMode === 'greek' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSearchMode('greek')}
+                  >
+                    Griego
+                  </Button>
+                  <Button
+                    variant={searchMode === 'spanish' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSearchMode('spanish')}
+                  >
+                    Español
+                  </Button>
+                  <Button
+                    variant={searchMode === 'lemma' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSearchMode('lemma')}
+                  >
+                    Lema
+                  </Button>
+                </div>
+
+                <div className="flex space-x-2">
                   <Input
-                    type="text"
-                    placeholder="Buscar palabra..."
+                    placeholder={`Buscar en ${searchMode}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="flex-1"
                   />
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <select
-                  value={searchMode}
-                  onChange={(e) => setSearchMode(e.target.value as 'greek' | 'spanish' | 'lemma')}
-                  className="px-3 py-2 border border-border rounded-md text-sm"
-                >
-                  <option value="greek">Griego</option>
-                  <option value="spanish">Español</option>
-                  <option value="lemma">Lema</option>
-                </select>
-                
-                <select
-                  value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
-                  className="px-3 py-2 border border-border rounded-md text-sm"
-                >
-                  <option value="all">Todos los niveles</option>
-                  <option value="beginner">Principiante</option>
-                  <option value="intermediate">Intermedio</option>
-                  <option value="advanced">Avanzado</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Search Results */}
-          <div className="lg:col-span-1 space-y-4">
-            <h2 className="text-xl font-semibold">
-              {searchTerm ? `Resultados (${searchResults.length})` : 'Palabras Populares'}
-            </h2>
-            
-            {isSearching ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Buscando...</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {(searchTerm ? searchResults : dictionaryData.slice(0, 10)).map((entry) => (
-                  <div
-                    key={entry.id}
-                    onClick={() => setSelectedEntry(entry)}
-                    className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedEntry?.id === entry.id ? 'bg-blue-50 border-blue-200' : ''
-                    }`}
+                  <select
+                    value={levelFilter}
+                    onChange={(e) => setLevelFilter(e.target.value)}
+                    className="px-3 py-2 border border-border rounded-md"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-lg greek-text">{entry.greekWord}</h3>
-                        <p className="text-sm text-muted-foreground">{entry.definition}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          entry.level === 'BEGINNER' ? 'bg-green-100 text-green-800' :
-                          entry.level === 'INTERMEDIATE' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {entry.level.charAt(0)}
-                        </span>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Entry Details */}
-          <div className="lg:col-span-2">
-            {selectedEntry ? (
-              <div className="bg-white rounded-lg border border-border p-6 space-y-6">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h1 className="text-4xl font-bold greek-text mb-2">{selectedEntry.greekWord}</h1>
-                    <p className="text-xl text-muted-foreground">{selectedEntry.lemma}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => playAudio(selectedEntry.audioUrl || '')}
-                    >
-                      <Volume2 className="w-4 h-4 mr-2" />
-                      Pronunciar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(selectedEntry.greekWord)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    <option value="all">Todos los niveles</option>
+                    <option value="BEGINNER">Principiante</option>
+                    <option value="INTERMEDIATE">Intermedio</option>
+                    <option value="ADVANCED">Avanzado</option>
+                  </select>
+                  <Button onClick={handleSearch} disabled={isSearching}>
+                    {isSearching ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Definition & Part of Speech */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Definición</h3>
-                  <p className="text-gray-700">{selectedEntry.definition}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    <strong>Parte del discurso:</strong> {selectedEntry.partOfSpeech}
-                  </p>
-                </div>
-
-                {/* Etymology */}
-                {selectedEntry.etymology && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Etimología</h3>
-                    <p className="text-gray-700">{selectedEntry.etymology}</p>
-                  </div>
-                )}
-
-                {/* Examples */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Ejemplos</h3>
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resultados ({searchResults.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-3">
-                    {selectedEntry.examples.map((example, index) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                        <p className="greek-text text-lg mb-1">{example.greek}</p>
-                        <p className="text-gray-600 italic">{example.translation}</p>
+                    {searchResults.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => setSelectedEntry(entry)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-xl font-mono greek-text">{entry.greekWord}</span>
+                            <span className="text-sm text-muted-foreground">({entry.lemma})</span>
+                            <span className={`px-2 py-1 text-xs rounded ${
+                              entry.level === 'BEGINNER' ? 'bg-green-100 text-green-800' :
+                              entry.level === 'INTERMEDIATE' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {entry.level}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleFavorite(entry.id)
+                              }}
+                            >
+                              <Heart className={`w-4 h-4 ${
+                                favorites.includes(entry.id) ? 'fill-red-500 text-red-500' : ''
+                              }`} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                playAudio(entry.audioUrl)
+                              }}
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground mb-1">
+                          {entry.partOfSpeech}
+                        </div>
+                        <div className="text-sm">
+                          {entry.definition.length > 100 
+                            ? `${entry.definition.substring(0, 100)}...`
+                            : entry.definition
+                          }
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="text-xs text-muted-foreground">
+                            Frecuencia: {entry.frequency}/100
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {entry.examples?.length || 0} ejemplos
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Morphology */}
-                {selectedEntry.morphology && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Morfología</h3>
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      {selectedEntry.morphology.declension && (
-                        <p><strong>Declinación:</strong> {selectedEntry.morphology.declension}</p>
-                      )}
-                      {selectedEntry.morphology.conjugation && (
-                        <p><strong>Conjugación:</strong> {selectedEntry.morphology.conjugation}</p>
-                      )}
-                      {selectedEntry.morphology.irregularities && selectedEntry.morphology.irregularities.length > 0 && (
-                        <p><strong>Irregularidades:</strong> {selectedEntry.morphology.irregularities.join(', ')}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Related Words */}
-                {selectedEntry.relatedWords && (
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">Palabras Relacionadas</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedEntry.relatedWords.map((word, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          size="sm"
-                          className="greek-text"
-                          onClick={() => {
-                            const relatedEntry = dictionaryData.find(entry => entry.greekWord === word)
-                            if (relatedEntry) setSelectedEntry(relatedEntry)
-                          }}
-                        >
-                          {word}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Frequency & Level */}
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-muted-foreground">
-                      <strong>Frecuencia:</strong> {selectedEntry.frequency}/100
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedEntry.level === 'BEGINNER' ? 'bg-green-100 text-green-800' :
-                      selectedEntry.level === 'INTERMEDIATE' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedEntry.level === 'BEGINNER' ? 'Principiante' :
-                       selectedEntry.level === 'INTERMEDIATE' ? 'Intermedio' : 'Avanzado'}
-                    </span>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Heart className="w-4 h-4 mr-2" />
-                    Guardar
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg border border-border p-8 text-center">
-                <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Selecciona una palabra</h3>
-                <p className="text-muted-foreground">
-                  Busca o selecciona una palabra de la lista para ver sus detalles completos
-                </p>
-              </div>
+                </CardContent>
+              </Card>
             )}
+
+            {/* Entry Details */}
+            {selectedEntry && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="greek-text text-2xl">{selectedEntry.greekWord}</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(selectedEntry.greekWord)}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => playAudio(selectedEntry.audioUrl)}
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleFavorite(selectedEntry.id)}
+                      >
+                        <Heart className={`w-4 h-4 ${
+                          favorites.includes(selectedEntry.id) ? 'fill-red-500 text-red-500' : ''
+                        }`} />
+                      </Button>
+                    </div>
+                  </CardTitle>
+                  <CardDescription>
+                    Lema: {selectedEntry.lemma} • {selectedEntry.partOfSpeech}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="definition" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="definition">Definición</TabsTrigger>
+                      <TabsTrigger value="examples">Ejemplos</TabsTrigger>
+                      <TabsTrigger value="morphology">Morfología</TabsTrigger>
+                      <TabsTrigger value="etymology">Etimología</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="definition" className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Definición</h4>
+                        <p className="text-muted-foreground">{selectedEntry.definition}</p>
+                      </div>
+                      
+                      {selectedEntry.relatedWords && selectedEntry.relatedWords.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Palabras relacionadas</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedEntry.relatedWords.map((word, index) => (
+                              <span 
+                                key={index}
+                                className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded cursor-pointer hover:bg-blue-200"
+                                onClick={() => setSearchTerm(word)}
+                              >
+                                {word}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="examples" className="space-y-4">
+                      {selectedEntry.examples && selectedEntry.examples.length > 0 ? (
+                        <div className="space-y-3">
+                          {selectedEntry.examples.map((example, index) => (
+                            <div key={index} className="border-l-4 border-blue-500 pl-4">
+                              <div className="font-mono greek-text text-lg">{example.greek}</div>
+                              <div className="text-sm text-muted-foreground">{example.translation}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                          No hay ejemplos disponibles para esta palabra.
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="morphology" className="space-y-4">
+                      {selectedEntry.morphology && (
+                        <div className="space-y-2">
+                          {selectedEntry.morphology.declension && (
+                            <div className="flex justify-between">
+                              <span className="font-medium">Declinación:</span>
+                              <span>{selectedEntry.morphology.declension}</span>
+                            </div>
+                          )}
+                          {selectedEntry.morphology.conjugation && (
+                            <div className="flex justify-between">
+                              <span className="font-medium">Conjugación:</span>
+                              <span>{selectedEntry.morphology.conjugation}</span>
+                            </div>
+                          )}
+                          {selectedEntry.morphology.irregularities && selectedEntry.morphology.irregularities.length > 0 && (
+                            <div>
+                              <span className="font-medium">Irregularidades:</span>
+                              <ul className="list-disc list-inside mt-1">
+                                {selectedEntry.morphology.irregularities.map((irregularity, index) => (
+                                  <li key={index} className="text-sm">{irregularity}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="font-medium">Frecuencia:</span>
+                            <span>{selectedEntry.frequency}/100</span>
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="etymology" className="space-y-4">
+                      {selectedEntry.etymology ? (
+                        <div>
+                          <h4 className="font-semibold mb-2">Etimología</h4>
+                          <p className="text-muted-foreground">{selectedEntry.etymology}</p>
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                          No hay información etimológica disponible para esta palabra.
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Quick Search */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Búsqueda Rápida</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Palabras más frecuentes
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Star className="w-4 h-4 mr-2" />
+                  Favoritos ({favorites.length})
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Visto recientemente
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Recent Searches */}
+            {recentSearches.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Búsquedas Recientes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {recentSearches.map((term, index) => (
+                      <button
+                        key={index}
+                        className="w-full text-left p-2 text-sm hover:bg-gray-50 rounded"
+                        onClick={() => {
+                          setSearchTerm(term)
+                          handleSearch()
+                        }}
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Estadísticas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Palabras en diccionario:</span>
+                  <span className="font-semibold">10,247</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Búsquedas realizadas:</span>
+                  <span className="font-semibold">{recentSearches.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Palabras favoritas:</span>
+                  <span className="font-semibold">{favorites.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Help */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Ayuda</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <span>Usa acentos griegos para búsquedas más precisas</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <span>Busca por raíces para encontrar palabras relacionadas</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <span>Haz clic en palabras relacionadas para explorar</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

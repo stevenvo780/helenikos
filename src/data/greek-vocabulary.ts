@@ -182,107 +182,44 @@ export const greekVocabulary = [
   }
 ]
 
-// Patrones sintácticos comunes en griego antiguo
+// Formas morfológicas para análisis
+export const morphologicalForms = [
+  { word: 'λόγου', lemma: 'λόγος', case: 'genitivo', number: 'singular' },
+  { word: 'λόγῳ', lemma: 'λόγος', case: 'dativo', number: 'singular' },
+  { word: 'λόγον', lemma: 'λόγος', case: 'acusativo', number: 'singular' },
+  { word: 'λόγοι', lemma: 'λόγος', case: 'nominativo', number: 'plural' },
+  { word: 'εἰμί', lemma: 'εἰμί', person: 'primera', number: 'singular', tense: 'presente' },
+  { word: 'εἶ', lemma: 'εἰμί', person: 'segunda', number: 'singular', tense: 'presente' },
+  { word: 'ἐστί', lemma: 'εἰμί', person: 'tercera', number: 'singular', tense: 'presente' },
+  { word: 'ἐσμέν', lemma: 'εἰμί', person: 'primera', number: 'plural', tense: 'presente' },
+  { word: 'ἐστέ', lemma: 'εἰμί', person: 'segunda', number: 'plural', tense: 'presente' },
+  { word: 'εἰσί', lemma: 'εἰμί', person: 'tercera', number: 'plural', tense: 'presente' }
+]
+
+// Patrones sintácticos comunes
 export const syntacticPatterns = [
   {
     pattern: 'Sujeto + Verbo + Objeto',
-    description: 'Orden básico de palabras en griego, aunque flexible',
-    examples: [
-      'ὁ ἀνὴρ τὸν λόγον λέγει (el hombre dice la palabra)',
-      'Ἀχιλλεὺς τὸν Ἕκτορα ἀπέκτεινε (Aquiles mató a Héctor)'
-    ],
+    description: 'Estructura básica de oración griega',
     frequency: 45,
-    difficulty: 'BEGINNER'
+    examples: ['ὁ ἄνθρωπος λέγει λόγον', 'ἡ σοφία διδάσκει τὸν μαθητήν']
   },
   {
-    pattern: 'Genitivo Absoluto',
-    description: 'Construcción participial independiente con valor temporal o causal',
-    examples: [
-      'ἡλίου ἀνατέλλοντος (al salir el sol)',
-      'τῶν πολεμίων φευγόντων (cuando los enemigos huían)'
-    ],
-    frequency: 25,
-    difficulty: 'ADVANCED'
-  },
-  {
-    pattern: 'Participio Atributivo',
-    description: 'Participio que modifica un sustantivo como adjetivo',
-    examples: [
-      'ὁ τρέχων ἀνήρ (el hombre que corre)',
-      'τὸ καλὸν ἔργον (la obra bella)'
-    ],
+    pattern: 'Artículo + Sustantivo + Adjetivo',
+    description: 'Sintagma nominal con adjetivo',
     frequency: 35,
-    difficulty: 'INTERMEDIATE'
+    examples: ['ὁ σοφὸς ἄνθρωπος', 'ἡ καλὴ πόλις']
   },
   {
-    pattern: 'Artículo + Infinitivo',
-    description: 'El infinitivo sustantivado con artículo neutro',
-    examples: [
-      'τὸ φιλεῖν (el amar)',
-      'τὸ καλῶς ζῆν (el vivir bien)'
-    ],
+    pattern: 'Genitivo de posesión',
+    description: 'Genitivo que indica pertenencia',
+    frequency: 25,
+    examples: ['ὁ υἱὸς τοῦ βασιλέως', 'ἡ σοφία τῶν φιλοσόφων']
+  },
+  {
+    pattern: 'Participio + Sustantivo',
+    description: 'Construcción participial',
     frequency: 20,
-    difficulty: 'INTERMEDIATE'
-  },
-  {
-    pattern: 'Hipérbaton',
-    description: 'Separación de palabras que normalmente irían juntas',
-    examples: [
-      'μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος',
-      'πολλὰ δ᾽ ἰφθίμους ψυχάς'
-    ],
-    frequency: 30,
-    difficulty: 'ADVANCED'
-  }
-]
-
-// Formas morfológicas comunes
-export const morphologicalForms = [
-  {
-    word: 'μῆνιν',
-    lemma: 'μῆνις',
-    partOfSpeech: 'sustantivo',
-    case: 'acusativo',
-    number: 'singular',
-    gender: 'femenino',
-    frequency: 85
-  },
-  {
-    word: 'ἄειδε',
-    lemma: 'ἀείδω',
-    partOfSpeech: 'verbo',
-    tense: 'presente',
-    voice: 'activa',
-    mood: 'imperativo',
-    person: 'segunda',
-    number: 'singular',
-    frequency: 65
-  },
-  {
-    word: 'θεά',
-    lemma: 'θεός',
-    partOfSpeech: 'sustantivo',
-    case: 'nominativo',
-    number: 'singular',
-    gender: 'femenino',
-    frequency: 95
-  },
-  {
-    word: 'Ἀχιλῆος',
-    lemma: 'Ἀχιλλεύς',
-    partOfSpeech: 'sustantivo propio',
-    case: 'genitivo',
-    number: 'singular',
-    gender: 'masculino',
-    frequency: 70
-  },
-  {
-    word: 'οὐλομένην',
-    lemma: 'οὐλόμενος',
-    partOfSpeech: 'adjetivo',
-    case: 'acusativo',
-    number: 'singular',
-    gender: 'femenino',
-    frequency: 45
+    examples: ['ὁ λέγων ἄνθρωπος', 'ἡ διδάσκουσα γυνή']
   }
 ]

@@ -164,7 +164,7 @@ export default function LessonsPage() {
         </div>
 
         {/* Level Tabs */}
-        <Tabs defaultValue="BEGINNER" onValueChange={(value) => setSelectedLevel(value as any)}>
+        <Tabs defaultValue="BEGINNER" onValueChange={(value) => setSelectedLevel(value as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED')}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="BEGINNER" className="flex items-center space-x-2">
               <Star className="w-4 h-4 text-green-500" />

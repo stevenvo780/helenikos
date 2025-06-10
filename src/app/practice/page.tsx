@@ -4,19 +4,23 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/dashboard-layout'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
-  Play, 
-  Check, 
-  X, 
+  Play,
+  Pause,
+  SkipForward,
   RotateCcw,
-  Lightbulb,
-  Target,
-  Trophy,
+  Check,
+  X,
   Clock,
-  BookOpen
+  Target,
+  Award,
+  Brain,
+  BookOpen,
+  Zap
 } from 'lucide-react'
 
 interface Exercise {
@@ -50,115 +54,210 @@ export default function PracticePage() {
   const [showResults, setShowResults] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [timeStarted, setTimeStarted] = useState<number | null>(null)
+  const [timeElapsed, setTimeElapsed] = useState(0)
+  const [score, setScore] = useState(0)
 
+  // Datos de ejemplo para conjuntos de ejercicios
   const exerciseSets: ExerciseSet[] = [
     {
-      id: 'alphabet-review',
-      title: 'Repaso del Alfabeto',
-      description: 'Practica el reconocimiento y pronunciación del alfabeto griego',
+      id: 'alphabet-practice',
+      title: 'Práctica del Alfabeto',
+      description: 'Ejercicios para dominar las letras griegas',
       category: 'Alfabeto',
-      estimatedTime: 10,
+      estimatedTime: 15,
       level: 'BEGINNER',
       exercises: [
         {
           id: 'alpha-1',
           type: 'multiple-choice',
-          question: '¿Cuál es la pronunciación correcta de la letra Α (α)?',
-          options: ['/a/', '/e/', '/i/', '/o/'],
-          correctAnswer: '/a/',
-          hint: 'Es similar a la vocal "a" en español',
-          explanation: 'Alpha se pronuncia como la "a" abierta en español.',
+          question: '¿Cómo se pronuncia la letra Α?',
+          options: ['[a]', '[e]', '[i]', '[o]'],
+          correctAnswer: '[a]',
+          hint: 'Es igual que la "a" en español',
+          explanation: 'La alfa (Α) se pronuncia como "a" en español.',
           difficulty: 'easy'
         },
         {
           id: 'beta-1',
           type: 'multiple-choice',
-          question: '¿Qué letra griega corresponde al sonido /b/?',
-          options: ['Π (π)', 'Β (β)', 'Φ (φ)', 'Ψ (ψ)'],
-          correctAnswer: 'Β (β)',
-          hint: 'Esta letra dio origen a nuestra letra "B"',
-          explanation: 'Beta (Β/β) representa el sonido /b/ en griego antiguo.',
+          question: '¿Cuál es la forma minúscula de Β?',
+          options: ['α', 'β', 'γ', 'δ'],
+          correctAnswer: 'β',
+          hint: 'Se parece a una "B" pero con curvas',
+          explanation: 'La beta minúscula es β.',
           difficulty: 'easy'
         },
         {
           id: 'gamma-1',
           type: 'fill-blank',
-          question: 'Complete: La letra Γ se llama _____ y se pronuncia /_____/',
-          correctAnswer: ['gamma', 'g'],
-          hint: 'Piensa en la palabra "gramática"',
-          explanation: 'Gamma es la tercera letra del alfabeto griego.',
+          question: 'Completa: La letra ___ se pronuncia [g]',
+          correctAnswer: 'γ',
+          hint: 'Tercera letra del alfabeto',
+          explanation: 'Gamma (γ) se pronuncia como "g" en "gato".',
           difficulty: 'medium'
         }
       ]
     },
     {
-      id: 'basic-vocabulary',
+      id: 'vocabulary-basic',
       title: 'Vocabulario Básico',
-      description: 'Aprende las palabras más importantes del griego antiguo',
+      description: 'Palabras fundamentales del griego antiguo',
       category: 'Vocabulario',
-      estimatedTime: 15,
+      estimatedTime: 25,
       level: 'BEGINNER',
       exercises: [
         {
           id: 'vocab-1',
           type: 'translation',
-          question: 'Traduce al español: λόγος',
+          question: 'Traduce: λόγος',
           correctAnswer: 'palabra',
-          hint: 'Piensa en "lógica" o "diálogo"',
-          explanation: 'λόγος significa palabra, razón o discurso. Es la raíz de muchas palabras en español.',
+          hint: 'Es la raíz de "lógica"',
+          explanation: 'λόγος significa palabra, razón o discurso.',
           difficulty: 'easy'
         },
         {
           id: 'vocab-2',
           type: 'multiple-choice',
           question: '¿Qué significa σοφία?',
-          options: ['amor', 'sabiduría', 'tiempo', 'lugar'],
+          options: ['amor', 'sabiduría', 'guerra', 'casa'],
           correctAnswer: 'sabiduría',
-          hint: 'Piensa en "filosofía" (amor a la sabiduría)',
-          explanation: 'σοφία significa sabiduría, y es parte de la palabra φιλοσοφία (filosofía).',
+          hint: 'Raíz de "filosofía"',
+          explanation: 'σοφία significa sabiduría.',
           difficulty: 'easy'
         },
         {
           id: 'vocab-3',
           type: 'matching',
           question: 'Relaciona las palabras griegas con sus traducciones:',
-          correctAnswer: ['ἄνθρωπος:humano', 'θεός:dios', 'κόσμος:mundo', 'ψυχή:alma'],
-          hint: 'Piensa en palabras derivadas como "antropología", "teología", etc.',
-          explanation: 'Estas son palabras fundamentales del vocabulario griego.',
+          options: ['θεός', 'ἄνθρωπος', 'πόλις', 'βίος'],
+          correctAnswer: ['dios', 'hombre', 'ciudad', 'vida'],
+          hint: 'Piensa en palabras como "teología", "antropología", "política", "biografía"',
+          explanation: 'θεός=dios, ἄνθρωπος=hombre, πόλις=ciudad, βίος=vida',
           difficulty: 'medium'
         }
       ]
     },
     {
-      id: 'grammar-basics',
-      title: 'Gramática Básica',
-      description: 'Conceptos fundamentales de la gramática griega',
+      id: 'morphology-intro',
+      title: 'Introducción a la Morfología',
+      description: 'Casos y declinaciones básicas',
       category: 'Gramática',
-      estimatedTime: 20,
+      estimatedTime: 35,
       level: 'INTERMEDIATE',
       exercises: [
         {
-          id: 'grammar-1',
+          id: 'morph-1',
           type: 'multiple-choice',
-          question: '¿Cuál es el caso nominativo singular de "honor" (τιμή)?',
-          options: ['τιμῆς', 'τιμῇ', 'τιμή', 'τιμήν'],
-          correctAnswer: 'τιμή',
-          hint: 'El nominativo es el caso del sujeto',
-          explanation: 'τιμή es la forma nominativo singular de "honor".',
+          question: '¿En qué caso está λόγου?',
+          options: ['nominativo', 'genitivo', 'dativo', 'acusativo'],
+          correctAnswer: 'genitivo',
+          hint: 'Indica posesión o pertenencia',
+          explanation: 'λόγου es genitivo singular de λόγος.',
           difficulty: 'medium'
         },
         {
-          id: 'grammar-2',
+          id: 'morph-2',
           type: 'fill-blank',
-          question: 'Complete la conjugación: λύω, λύεις, _____',
-          correctAnswer: 'λύει',
-          hint: 'Es la tercera persona singular del presente',
-          explanation: 'λύει es la forma de tercera persona singular del presente de λύω.',
+          question: 'El dativo singular de λόγος es: λόγ__',
+          correctAnswer: 'ῳ',
+          hint: 'Usado para el objeto indirecto',
+          explanation: 'λόγῳ es el dativo singular.',
           difficulty: 'medium'
         }
       ]
     }
   ]
+
+  const currentExercise = selectedSet?.exercises[currentExerciseIndex]
+
+  const handleStartSet = (set: ExerciseSet) => {
+    setSelectedSet(set)
+    setCurrentExerciseIndex(0)
+    setUserAnswers({})
+    setShowResults(false)
+    setShowHint(false)
+    setTimeStarted(Date.now())
+    setTimeElapsed(0)
+    setScore(0)
+  }
+
+  const handleAnswer = (answer: string | string[]) => {
+    if (!currentExercise) return
+
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentExercise.id]: answer
+    }))
+  }
+
+  const checkAnswer = () => {
+    if (!currentExercise) return false
+    
+    const userAnswer = userAnswers[currentExercise.id]
+    const correctAnswer = currentExercise.correctAnswer
+
+    if (Array.isArray(correctAnswer) && Array.isArray(userAnswer)) {
+      return JSON.stringify(userAnswer.sort()) === JSON.stringify(correctAnswer.sort())
+    }
+    
+    return userAnswer?.toString().toLowerCase().trim() === correctAnswer?.toString().toLowerCase().trim()
+  }
+
+  const handleNext = () => {
+    if (!selectedSet || !currentExercise) return
+
+    if (checkAnswer()) {
+      setScore(prev => prev + 1)
+    }
+
+    if (currentExerciseIndex < selectedSet.exercises.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1)
+      setShowHint(false)
+    } else {
+      setShowResults(true)
+    }
+  }
+
+  const handleRestart = () => {
+    setCurrentExerciseIndex(0)
+    setUserAnswers({})
+    setShowResults(false)
+    setShowHint(false)
+    setTimeStarted(Date.now())
+    setTimeElapsed(0)
+    setScore(0)
+  }
+
+  const handleBackToSets = () => {
+    setSelectedSet(null)
+    setShowResults(false)
+  }
+
+  const getScorePercentage = () => {
+    if (!selectedSet) return 0
+    return Math.round((score / selectedSet.exercises.length) * 100)
+  }
+
+  const getScoreColor = () => {
+    const percentage = getScorePercentage()
+    if (percentage >= 80) return 'text-green-600'
+    if (percentage >= 60) return 'text-yellow-600'
+    return 'text-red-600'
+  }
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+    
+    if (timeStarted && !showResults) {
+      interval = setInterval(() => {
+        setTimeElapsed(Date.now() - timeStarted)
+      }, 1000)
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [timeStarted, showResults])
 
   useEffect(() => {
     if (status === 'loading') return
@@ -167,340 +266,377 @@ export default function PracticePage() {
     }
   }, [session, status, router])
 
-  const startExerciseSet = (set: ExerciseSet) => {
-    setSelectedSet(set)
-    setCurrentExerciseIndex(0)
-    setUserAnswers({})
-    setShowResults(false)
-    setShowHint(false)
-    setTimeStarted(Date.now())
-  }
-
-  const handleAnswer = (answer: string | string[]) => {
-    if (!selectedSet) return
-    
-    const currentExercise = selectedSet.exercises[currentExerciseIndex]
-    setUserAnswers({
-      ...userAnswers,
-      [currentExercise.id]: answer
-    })
-  }
-
-  const nextExercise = () => {
-    if (!selectedSet) return
-    
-    if (currentExerciseIndex < selectedSet.exercises.length - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1)
-      setShowHint(false)
-    } else {
-      setShowResults(true)
-    }
-  }
-
-  const resetExercises = () => {
-    setSelectedSet(null)
-    setCurrentExerciseIndex(0)
-    setUserAnswers({})
-    setShowResults(false)
-    setShowHint(false)
-    setTimeStarted(null)
-  }
-
-  const calculateScore = () => {
-    if (!selectedSet) return 0
-    
-    let correct = 0
-    selectedSet.exercises.forEach(exercise => {
-      const userAnswer = userAnswers[exercise.id]
-      if (Array.isArray(exercise.correctAnswer)) {
-        if (Array.isArray(userAnswer) && 
-            exercise.correctAnswer.every(ans => userAnswer.includes(ans))) {
-          correct++
-        }
-      } else {
-        if (userAnswer === exercise.correctAnswer) {
-          correct++
-        }
-      }
-    })
-    
-    return Math.round((correct / selectedSet.exercises.length) * 100)
-  }
-
-  const getTimeElapsed = () => {
-    if (!timeStarted) return 0
-    return Math.round((Date.now() - timeStarted) / 1000)
-  }
-
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
+          <p className="mt-4 text-muted-foreground">Cargando ejercicios...</p>
         </div>
       </div>
     )
   }
 
-  if (!session) return null
+  if (!session) {
+    return null
+  }
 
+  const formatTime = (ms: number) => {
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  // Vista de selección de conjuntos
   if (!selectedSet) {
     return (
       <DashboardLayout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Práctica</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Práctica y Ejercicios</h1>
             <p className="text-muted-foreground mt-2">
-              Refuerza tu aprendizaje con ejercicios interactivos
+              Refuerza tus conocimientos con ejercicios interactivos
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {exerciseSets.map((set) => (
-              <div key={set.id} className="bg-white rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              <Card key={set.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <CardTitle className="text-lg">{set.title}</CardTitle>
+                    <span className={`px-2 py-1 text-xs rounded ${
                       set.level === 'BEGINNER' ? 'bg-green-100 text-green-800' :
                       set.level === 'INTERMEDIATE' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {set.level === 'BEGINNER' ? 'Principiante' :
-                       set.level === 'INTERMEDIATE' ? 'Intermedio' : 'Avanzado'}
+                      {set.level}
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{set.category}</span>
-                </div>
+                  <CardDescription>{set.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-1 text-muted-foreground" />
+                          <span>{set.estimatedTime} min</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Brain className="w-4 h-4 mr-1 text-muted-foreground" />
+                          <span>{set.exercises.length} ejercicios</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      Categoría: {set.category}
+                    </div>
 
-                <h3 className="text-lg font-semibold mb-2">{set.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{set.description}</p>
-
-                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center space-x-1">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{set.exercises.length} ejercicios</span>
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleStartSet(set)}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Comenzar Práctica
+                    </Button>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{set.estimatedTime} min</span>
-                  </div>
-                </div>
-
-                <Button onClick={() => startExerciseSet(set)} className="w-full">
-                  <Play className="w-4 h-4 mr-2" />
-                  Comenzar
-                </Button>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
+
+          {/* Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tu Progreso en Práctica</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <Target className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                  <div className="text-2xl font-bold text-blue-600">156</div>
+                  <div className="text-sm text-blue-600">ejercicios completados</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <Award className="w-6 h-6 mx-auto mb-2 text-green-600" />
+                  <div className="text-2xl font-bold text-green-600">87%</div>
+                  <div className="text-sm text-green-600">precisión promedio</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <Zap className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+                  <div className="text-2xl font-bold text-purple-600">12</div>
+                  <div className="text-sm text-purple-600">racha actual</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <Clock className="w-6 h-6 mx-auto mb-2 text-orange-600" />
+                  <div className="text-2xl font-bold text-orange-600">2.5h</div>
+                  <div className="text-sm text-orange-600">tiempo total</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     )
   }
 
+  // Vista de resultados
   if (showResults) {
-    const score = calculateScore()
-    const timeElapsed = getTimeElapsed()
-    
+    const percentage = getScorePercentage()
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto space-y-8">
-          <div className="text-center">
-            <div className="text-6xl mb-4">
-              {score >= 80 ? '🎉' : score >= 60 ? '👍' : '📚'}
-            </div>
-            <h2 className="text-3xl font-bold mb-2">
-              {score >= 80 ? '¡Excelente!' : score >= 60 ? '¡Bien hecho!' : '¡Sigue practicando!'}
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Tu puntuación: {score}%
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Tiempo: {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}
-            </p>
-          </div>
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">¡Ejercicio Completado!</CardTitle>
+              <CardDescription>{selectedSet.title}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Score Display */}
+              <div className="text-center">
+                <div className={`text-6xl font-bold ${getScoreColor()}`}>
+                  {percentage}%
+                </div>
+                <div className="text-muted-foreground">
+                  {score} de {selectedSet.exercises.length} correctas
+                </div>
+              </div>
 
-          <div className="bg-white rounded-lg border border-border p-6">
-            <h3 className="text-lg font-semibold mb-4">Resultados Detallados</h3>
-            <div className="space-y-4">
-              {selectedSet.exercises.map((exercise, index) => {
-                const userAnswer = userAnswers[exercise.id]
-                const isCorrect = Array.isArray(exercise.correctAnswer) 
-                  ? Array.isArray(userAnswer) && exercise.correctAnswer.every(ans => userAnswer.includes(ans))
-                  : userAnswer === exercise.correctAnswer
+              {/* Time */}
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <Clock className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-lg">{formatTime(timeElapsed)}</span>
+                </div>
+              </div>
 
-                return (
-                  <div key={exercise.id} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                    {isCorrect ? (
-                      <Check className="w-5 h-5 text-green-600 mt-1" />
-                    ) : (
-                      <X className="w-5 h-5 text-red-600 mt-1" />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium mb-1">Pregunta {index + 1}</p>
-                      <p className="text-sm text-muted-foreground mb-2">{exercise.question}</p>
-                      <div className="text-sm">
-                        <p>Tu respuesta: <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>
-                          {Array.isArray(userAnswer) ? userAnswer.join(', ') : userAnswer}
-                        </span></p>
-                        {!isCorrect && (
-                          <p>Respuesta correcta: <span className="text-green-600">
-                            {Array.isArray(exercise.correctAnswer) 
-                              ? exercise.correctAnswer.join(', ') 
-                              : exercise.correctAnswer}
-                          </span></p>
-                        )}
-                      </div>
-                      {exercise.explanation && (
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          {exercise.explanation}
-                        </p>
-                      )}
-                    </div>
+              {/* Progress Bar */}
+              <div>
+                <Progress value={percentage} className="h-3" />
+              </div>
+
+              {/* Performance Message */}
+              <div className="text-center p-4 rounded-lg bg-gray-50">
+                {percentage >= 80 ? (
+                  <div>
+                    <div className="text-lg font-semibold text-green-600 mb-2">¡Excelente trabajo!</div>
+                    <p className="text-sm text-muted-foreground">
+                      Has demostrado un dominio sólido del tema. ¡Sigue así!
+                    </p>
                   </div>
-                )
-              })}
-            </div>
-          </div>
+                ) : percentage >= 60 ? (
+                  <div>
+                    <div className="text-lg font-semibold text-yellow-600 mb-2">¡Buen progreso!</div>
+                    <p className="text-sm text-muted-foreground">
+                      Vas por buen camino. Considera repasar los temas donde tuviste dificultades.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-lg font-semibold text-red-600 mb-2">Sigue practicando</div>
+                    <p className="text-sm text-muted-foreground">
+                      No te desanimes. La práctica constante es clave para el aprendizaje.
+                    </p>
+                  </div>
+                )}
+              </div>
 
-          <div className="flex justify-center space-x-4">
-            <Button onClick={resetExercises} variant="outline">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Volver a Práctica
-            </Button>
-            <Button onClick={() => router.push('/dashboard')}>
-              Ir al Dashboard
-            </Button>
-          </div>
+              {/* Actions */}
+              <div className="flex space-x-4">
+                <Button variant="outline" onClick={handleRestart} className="flex-1">
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Repetir
+                </Button>
+                <Button onClick={handleBackToSets} className="flex-1">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Otros Ejercicios
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     )
   }
 
-  const currentExercise = selectedSet.exercises[currentExerciseIndex]
-  const progress = ((currentExerciseIndex + 1) / selectedSet.exercises.length) * 100
-
+  // Vista del ejercicio
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">{selectedSet.title}</h1>
             <p className="text-muted-foreground">
-              Pregunta {currentExerciseIndex + 1} de {selectedSet.exercises.length}
+              Ejercicio {currentExerciseIndex + 1} de {selectedSet.exercises.length}
             </p>
           </div>
-          <Button variant="outline" onClick={resetExercises}>
-            Salir
-          </Button>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span>{formatTime(timeElapsed)}</span>
+            </div>
+            <Button variant="outline" onClick={handleBackToSets}>
+              Salir
+            </Button>
+          </div>
         </div>
 
         {/* Progress */}
-        <div className="bg-white rounded-lg border border-border p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Progreso</span>
-            <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
+        <div>
+          <div className="flex justify-between text-sm mb-2">
+            <span>Progreso</span>
+            <span>{currentExerciseIndex + 1}/{selectedSet.exercises.length}</span>
           </div>
-          <Progress value={progress} />
+          <Progress 
+            value={((currentExerciseIndex + 1) / selectedSet.exercises.length) * 100} 
+            className="h-2" 
+          />
         </div>
 
         {/* Exercise */}
-        <div className="bg-white rounded-lg border border-border p-8">
-          <div className="space-y-6">
-            <div className="flex items-start justify-between">
-              <h2 className="text-xl font-semibold">{currentExercise.question}</h2>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                currentExercise.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                currentExercise.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
-                {currentExercise.difficulty === 'easy' ? 'Fácil' :
-                 currentExercise.difficulty === 'medium' ? 'Medio' : 'Difícil'}
-              </span>
-            </div>
-
-            {/* Exercise Content */}
-            {currentExercise.type === 'multiple-choice' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {currentExercise.options?.map((option, index) => (
+        {currentExercise && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2 py-1 text-xs rounded ${
+                    currentExercise.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
+                    currentExercise.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {currentExercise.difficulty}
+                  </span>
+                  <span className="text-sm text-muted-foreground capitalize">
+                    {currentExercise.type.replace('-', ' ')}
+                  </span>
+                </div>
+                {currentExercise.hint && (
                   <Button
-                    key={index}
-                    variant={userAnswers[currentExercise.id] === option ? "default" : "outline"}
-                    onClick={() => handleAnswer(option)}
-                    className="justify-start h-auto p-4 text-left"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowHint(!showHint)}
                   >
-                    {option}
+                    💡 Pista
                   </Button>
-                ))}
-              </div>
-            )}
-
-            {currentExercise.type === 'translation' && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="Escribe tu traducción..."
-                  value={userAnswers[currentExercise.id] as string || ''}
-                  onChange={(e) => handleAnswer(e.target.value)}
-                  className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-            )}
-
-            {currentExercise.type === 'fill-blank' && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="Completa los espacios en blanco..."
-                  value={userAnswers[currentExercise.id] as string || ''}
-                  onChange={(e) => handleAnswer(e.target.value.split(','))}
-                  className="w-full p-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Separa múltiples respuestas con comas
-                </p>
-              </div>
-            )}
-
-            {/* Hint */}
-            {currentExercise.hint && (
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowHint(!showHint)}
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  {showHint ? 'Ocultar' : 'Ver'} Pista
-                </Button>
-                {showHint && (
-                  <p className="text-sm text-muted-foreground italic">
-                    {currentExercise.hint}
-                  </p>
                 )}
               </div>
-            )}
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Question */}
+              <div className="text-lg font-medium">{currentExercise.question}</div>
 
-            {/* Navigation */}
-            <div className="flex justify-between pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentExerciseIndex(Math.max(0, currentExerciseIndex - 1))}
-                disabled={currentExerciseIndex === 0}
-              >
-                Anterior
-              </Button>
-              <Button
-                onClick={nextExercise}
-                disabled={!userAnswers[currentExercise.id]}
-              >
-                {currentExerciseIndex === selectedSet.exercises.length - 1 ? 'Finalizar' : 'Siguiente'}
-              </Button>
-            </div>
-          </div>
-        </div>
+              {/* Hint */}
+              {showHint && currentExercise.hint && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-blue-600">💡 Pista:</span>
+                    <span className="text-sm text-blue-700">{currentExercise.hint}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Answer Input */}
+              <div className="space-y-4">
+                {currentExercise.type === 'multiple-choice' && currentExercise.options && (
+                  <div className="space-y-2">
+                    {currentExercise.options.map((option, index) => (
+                      <button
+                        key={index}
+                        className={`w-full p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors ${
+                          userAnswers[currentExercise.id] === option
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border'
+                        }`}
+                        onClick={() => handleAnswer(option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {currentExercise.type === 'fill-blank' && (
+                  <Input
+                    placeholder="Escribe tu respuesta..."
+                    value={userAnswers[currentExercise.id] as string || ''}
+                    onChange={(e) => handleAnswer(e.target.value)}
+                    className="text-lg"
+                  />
+                )}
+
+                {currentExercise.type === 'translation' && (
+                  <Input
+                    placeholder="Escribe la traducción..."
+                    value={userAnswers[currentExercise.id] as string || ''}
+                    onChange={(e) => handleAnswer(e.target.value)}
+                    className="text-lg"
+                  />
+                )}
+
+                {currentExercise.type === 'matching' && currentExercise.options && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Griego</h4>
+                      <div className="space-y-2">
+                        {currentExercise.options.map((option, index) => (
+                          <div key={index} className="p-2 border rounded greek-text">
+                            {option}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Español (arrastra o escribe)</h4>
+                      <div className="space-y-2">
+                        {Array.isArray(currentExercise.correctAnswer) && 
+                         currentExercise.correctAnswer.map((_, index) => (
+                          <Input
+                            key={index}
+                            placeholder={`Traducción ${index + 1}`}
+                            value={
+                              Array.isArray(userAnswers[currentExercise.id]) 
+                                ? (userAnswers[currentExercise.id] as string[])[index] || ''
+                                : ''
+                            }
+                            onChange={(e) => {
+                              const currentAnswers = Array.isArray(userAnswers[currentExercise.id]) 
+                                ? [...(userAnswers[currentExercise.id] as string[])]
+                                : []
+                              currentAnswers[index] = e.target.value
+                              handleAnswer(currentAnswers)
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentExerciseIndex(Math.max(0, currentExerciseIndex - 1))}
+                  disabled={currentExerciseIndex === 0}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!userAnswers[currentExercise.id]}
+                >
+                  {currentExerciseIndex === selectedSet.exercises.length - 1 ? 'Finalizar' : 'Siguiente'}
+                  <SkipForward className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   )
